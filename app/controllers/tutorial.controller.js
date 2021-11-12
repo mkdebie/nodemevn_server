@@ -1,5 +1,13 @@
+const { ConnectionStates } = require("mongoose");
 const db = require("../models");
 const Tutorial = db.tutorials;
+
+const getPagination = (page, size) => {
+  const limit = size ? +size : 3;
+  const offset = page ? page * limit : 0;
+
+  return {limit, offset}
+}
 
 // Create and Save a new Tutorial
 exports.create = (req, res) => {
@@ -35,14 +43,31 @@ exports.create = (req, res) => {
     });
 };
 
-// Retrieve all Tutorials from the database.
+// Retrieve all Tutorials from the database, generate Index And send paginated
 exports.findAll = (req, res) => {
-    const title = req.query.title;
+    const { page, size, title } = req.query;
+    var bladwijzer = [];
+    var tutorialList = [];
     var condition = title ? { title: { $regex: new RegExp(title), $options: "i" } } : {};
-  
-    Tutorial.find(condition)
+
+    const { limit, offset } = getPagination(page, size);
+
+    Tutorial.find()
+    .then (data1 => {
+        tutorialList = data1
+        createBladwijzer();   
+      })
+   
+
+    Tutorial.paginate(condition, {offset, limit})
       .then(data => {
-        res.send(data);
+        res.send({
+          totalItems: data.totalDocs,
+          tutorials: data.docs,
+          totalPages: data.totalPages,
+          currentPage: data.page - 1,
+          bladwijzer: bladwijzer
+        });
       })
       .catch(err => {
         res.status(500).send({
@@ -50,6 +75,27 @@ exports.findAll = (req, res) => {
             err.message || "Some error occurred while retrieving tutorials."
         });
       });
+
+      function pushGuideline(guideline) {
+        return new Promise (resolve => {
+          console.log (guideline)
+          bladwijzer.push ({"guideline": guideline, "tables": ["Tabel 1"] })
+        })}
+
+      async function createBladwijzer () {
+        console.log(tutorialList)
+        for (i=0; i < tutorialList.length; i++) {
+          if (bladwijzer.some(bladwijzer => bladwijzer.guideline === tutorialList[i].guideline)) {
+            for (j=0; j<tutorialList[i].tables.length + 1; j++) {
+              console.log ("loop door tables")
+            }
+          } else {
+            await pushGuideline (tutorialList[i].guideline)
+            }
+              console.log("dit is poging 1")
+              console.log (bladwijzer.guideline)
+          }
+        }      
 };
 
 // Find a single Tutorial with an id
@@ -134,12 +180,22 @@ exports.deleteAll = (req, res) => {
 };
 
 // Find all published Tutorials
-exports.findAllPublished = (req, res) => {
-    Tutorial.find({ published: true })
+exports.findAllUnPublished = (req, res) => {
+    const {page, size, query} = req.query;
+    const { limit, offset } = getPagination(page, size);
+    const zoek = JSON.parse(query);
+    console.log(zoek);
+    Tutorial.paginate(zoek, {offset, limit})
     .then(data => {
-      res.send(data);
+      res.send({
+      totalItems: data.totalDocs,
+      tutorials: data.docs,
+      totalPages: data.totalPages,
+      currentPage: data.page - 1
     })
+  })
     .catch(err => {
+      console.log(err)
       res.status(500).send({
         message:
           err.message || "Some error occurred while retrieving tutorials."
