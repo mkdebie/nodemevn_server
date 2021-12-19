@@ -13,7 +13,7 @@ module.exports = app => {
     router.get("/unpublished", tutorials.findAllUnPublished);
   
     // Retrieve a single Tutorial with id
-    router.get("/:id", tutorials.findOne);
+    router.get("/single/:id", tutorials.findOne);
   
     // Update a Tutorial with id
     router.put("/:id", tutorials.update);
@@ -23,6 +23,9 @@ module.exports = app => {
   
     // Create a new Tutorial
     router.delete("/", tutorials.deleteAll);
+
+    // Retrieve all Databaseparameters
+    router.get("/allparams", tutorials.allParams)
   
     app.use('/api/tutorials', router);
   };

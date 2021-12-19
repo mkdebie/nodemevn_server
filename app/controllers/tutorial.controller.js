@@ -203,3 +203,14 @@ exports.findAllUnPublished = (req, res) => {
     });
   
 };
+
+// Get all Parameters for the Mainwindow
+exports.allParams = (req, res) => {
+  const params={};
+  Tutorial.find()
+  .then(data=> {
+    params.lengte = data.length
+    res.send(params);
+  })
+
+};
