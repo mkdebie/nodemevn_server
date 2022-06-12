@@ -1,6 +1,6 @@
 module.exports = app => {
     const tutorials = require("../controllers/tutorial.controller.js");
-  
+
     var router = require("express").Router();
   
     // Create a new Tutorial
@@ -8,6 +8,12 @@ module.exports = app => {
   
     // Retrieve all Tutorials
     router.get("/", tutorials.findAll);
+
+    // Retrieve all Guidelines
+    router.get("/guidelines", tutorials.findGuidelines)
+
+    // Retrieve Specifice Guideline
+    router.get("/guideline", tutorials.getGuideline)
   
     // Retrieve all published Tutorials
     router.get("/unpublished", tutorials.findAllUnPublished);
@@ -24,8 +30,11 @@ module.exports = app => {
     // Create a new Tutorial
     router.delete("/", tutorials.deleteAll);
 
-    // Retrieve all Databaseparameters
-    router.get("/allparams", tutorials.allParams)
-  
+    //Retrieve All Pre-reqs
+    router.get("/prereqs", tutorials.allPrereqs )
+
+    //Retrieve All Supports-Off
+    router.get("/supportOf", tutorials.allSupports )
+
     app.use('/api/tutorials', router);
   };

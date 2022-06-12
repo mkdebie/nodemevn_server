@@ -8,6 +8,7 @@ module.exports = (mongoose, mongoosePaginate) => {
       loe: String,
       published: Boolean,
       prereq: [],
+      supportOf: [],
     },
     { timestamps: true }
   );

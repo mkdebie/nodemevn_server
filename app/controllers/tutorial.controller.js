@@ -1,5 +1,6 @@
 const { ConnectionStates } = require("mongoose");
 const db = require("../models");
+const tutorialModel = require("../models/tutorial.model");
 const Tutorial = db.tutorials;
 
 const getPagination = (page, size) => {
@@ -104,6 +105,7 @@ exports.findOne = (req, res) => {
 
   Tutorial.findById(id)
     .then(data => {
+      console.log(data);
       if (!data)
         res.status(404).send({ message: "Not found Tutorial with id " + id });
       else res.send(data);
@@ -179,12 +181,72 @@ exports.deleteAll = (req, res) => {
     });
 };
 
+// Get all guidelines
+exports.findGuidelines = (req, res) => {
+  Tutorial.aggregate([
+    {
+      $group : {
+        _id : "$guideline",
+        details: {
+          $push : {
+            recommendation:"$recommendation",
+            id:"$_id"
+          }
+        }
+      }
+    }
+  ])
+  .then(data => {
+    if (!data)
+      res.status(404).send({ message: "Could not retrieve Guidelines "});
+    else {
+      res.send({
+        data: data
+      })
+    }})
+  .catch(err => {
+    res
+      .status(500)
+      .send({ message: "Could not retrieve guidelines"});
+  });
+  }
+
+// Get guideline
+exports.getGuideline = (req, res) => {
+  Tutorial.aggregate([
+    { $match: { guideline: req.query.guideline}},
+      { $group: {
+        _id : "$table", 
+        details: {
+          $push : {
+            recommendation:"$recommendation",
+            class:"$class",
+            loe:"$loe",
+            id:"$_id"
+          }
+        }
+      } 
+      }
+  ]).then(data => {
+    if (!data)
+      res.status(404).send({ message: "Could not retrieve guideline... "});
+    else {
+      res.send({
+        data: data
+      })
+    }})
+  .catch(err => {
+    res
+      .status(500)
+      .send({ message: "Could not retrieve guideline" + err});
+  });
+}
+
 // Find all published Tutorials
 exports.findAllUnPublished = (req, res) => {
     const {page, size, query} = req.query;
     const { limit, offset } = getPagination(page, size);
     const zoek = JSON.parse(query);
-    console.log(zoek);
     Tutorial.paginate(zoek, {offset, limit})
     .then(data => {
       res.send({
@@ -204,13 +266,37 @@ exports.findAllUnPublished = (req, res) => {
   
 };
 
-// Get all Parameters for the Mainwindow
-exports.allParams = (req, res) => {
-  const params={};
-  Tutorial.find()
-  .then(data=> {
-    params.lengte = data.length
-    res.send(params);
-  })
+// Get all preReqs
+exports.allPrereqs = (req, res) => {
+  Tutorial.distinct("prereq")
+  .then(data => {
+    if (!data)
+    res.status(404).send({ message: "Could not retrieve prereqs... "});
+    else {
+    console.log (data)
+    res.send({
+      data: data
+    })
+  }})
+  .catch(err => {
+  res.status(500).send({ message: "Could not retrieve prereq" + err});
+  });
+}
 
-};
+// Get all supports
+exports.allSupports = (req, res) => {
+  console.log("hallo")
+  Tutorial.distinct("supportOf")
+  .then(data => {
+    if (!data)
+    res.status(404).send({ message: "Could not retrieve supports... "});
+    else {
+    console.log (data)
+    res.send({
+      data: data
+    })
+  }})
+  .catch(err => {
+  res.status(500).send({ message: "Could not retrieve supports" + err});
+  });
+}
