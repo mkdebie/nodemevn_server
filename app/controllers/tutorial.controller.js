@@ -184,7 +184,7 @@ exports.deleteAll = (req, res) => {
 // Get all guidelines
 exports.findGuidelines = (req, res) => {
   Tutorial.aggregate([
-    {
+      {
       $group : {
         _id : "$guideline",
         details: {
@@ -194,17 +194,25 @@ exports.findGuidelines = (req, res) => {
           }
         }
       }
-    }
+    },
+      {
+        $sort: {
+          "_id": 1
+        }
+      },
+      
   ])
   .then(data => {
     if (!data)
       res.status(404).send({ message: "Could not retrieve Guidelines "});
     else {
+      console.log(data + "hallo")
       res.send({
         data: data
       })
     }})
   .catch(err => {
+    console.log(err)
     res
       .status(500)
       .send({ message: "Could not retrieve guidelines"});
@@ -226,7 +234,12 @@ exports.getGuideline = (req, res) => {
           }
         }
       } 
-      }
+      },
+      {
+        $sort: {
+          "_id": 1
+        }
+      },
   ]).then(data => {
     if (!data)
       res.status(404).send({ message: "Could not retrieve guideline... "});
@@ -265,7 +278,7 @@ exports.findAllUnPublished = (req, res) => {
     });
   
 };
-
+// PreReq sectie
 // Get all preReqs
 exports.allPrereqs = (req, res) => {
   Tutorial.distinct("prereq")
@@ -283,20 +296,95 @@ exports.allPrereqs = (req, res) => {
   });
 }
 
+//Get all recs with a pre-req
+exports.allRecPrereq = (req, res) => {
+  const id = req.params.id;
+  console.log(id)
+  Tutorial.find({
+    prereq: { $elemMatch: { key: id} } 
+  })
+  .then(data=> {
+    if(!data)
+    res.status(404).send({ message: "Could not retrieve inforomation on prereq... "});
+    else {
+      res.send({
+        data: data, 
+      })
+    }})
+  .catch(err => {
+    res.status(500).send({ message: "Could not retrieve prereq" + err});
+    });
+}
+
+exports.allRecPrereqMin = (req, res) => {
+  console.log("works")
+  Tutorial.distinct("prereq.key")
+    .then(data => {
+      if (!data)
+      res.status(404).send({ message: "Could not retrieve PreReqs... "});
+      else {
+      console.log (data)
+      res.send({
+        data: data
+      })
+    }})
+    .catch(err => {
+    res.status(500).send({ message: "Could not retrieve PreReqs" + err});
+    });
+}
+
 // Get all supports
 exports.allSupports = (req, res) => {
-  console.log("hallo")
-  Tutorial.distinct("supportOf")
+  Tutorial.aggregate([
+    {$unwind: "$supportOf"},
+      {$group : {
+        _id: "$supportOf",
+        details: {
+          $push : {
+            recommendation:"$recommendation",
+            rec_id:"$_id"
+          }}
+      }}
+  ])
   .then(data => {
     if (!data)
     res.status(404).send({ message: "Could not retrieve supports... "});
     else {
-    console.log (data)
     res.send({
       data: data
     })
   }})
   .catch(err => {
   res.status(500).send({ message: "Could not retrieve supports" + err});
+  });
+}
+
+exports.allSupportsMin = (req, res) => {
+  Tutorial.distinct("supportOf.value")
+  .then(data => {
+    if (!data)
+    res.status(404).send({ message: "Could not retrieve supports... "});
+    else {
+    res.send({
+      data: data
+    })
+  }})
+  .catch(err => {
+  res.status(500).send({ message: "Could not retrieve supports" + err});
+  });
+}
+
+exports.allSupportsMinType = (req, res) => {
+  Tutorial.distinct("supportOf.type")
+  .then(data => {
+    if (!data)
+    res.status(404).send({ message: "Could not retrieve supportTypes... "});
+    else {
+    res.send({
+      data: data
+    })
+  }})
+  .catch(err => {
+  res.status(500).send({ message: "Could not retrieve supportTypes" + err});
   });
 }

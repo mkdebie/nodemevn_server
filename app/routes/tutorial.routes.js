@@ -33,8 +33,14 @@ module.exports = app => {
     //Retrieve All Pre-reqs
     router.get("/prereqs", tutorials.allPrereqs )
 
+    //Retreive All Recs for given Pre-req
+    router.get("/prereqs/:id", tutorials.allRecPrereq)
+    router.get("/allPrereqMin", tutorials.allRecPrereqMin)
+
     //Retrieve All Supports-Off
     router.get("/supportOf", tutorials.allSupports )
+    router.get("/supportOfMin", tutorials.allSupportsMin)
+    router.get("/supportOfMinType", tutorials.allSupportsMinType)
 
     app.use('/api/tutorials', router);
   };
